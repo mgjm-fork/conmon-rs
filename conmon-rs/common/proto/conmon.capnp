@@ -37,6 +37,7 @@ interface Conmon {
         globalArgs @8 :List(Text);
         commandArgs @9 :List(Text);
         metadata @10 :Data;
+        envVars @11 :List(Text);
     }
 
     struct LogDriver {
