@@ -1,6 +1,7 @@
 //! Configuration related structures
 use anyhow::{bail, Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
+use conmon_common::conmon_capnp::conmon;
 use getset::{CopyGetters, Getters, Setters};
 use serde::{Deserialize, Serialize};
 use std::{fs, path::PathBuf};
@@ -330,6 +331,26 @@ pub enum CgroupManager {
 impl Default for CgroupManager {
     fn default() -> Self {
         Self::Systemd
+    }
+}
+
+impl From<conmon::CgroupManager> for CgroupManager {
+    fn from(value: conmon::CgroupManager) -> Self {
+        match value {
+            conmon::CgroupManager::Systemd => Self::Systemd,
+            conmon::CgroupManager::Cgroupfs => Self::Cgroupfs,
+        }
+    }
+}
+
+impl CgroupManager {
+    // Return `other` but treat `Self::default()` as an absent value and fall back to `self`.
+    pub(crate) fn overwrite(self, other: Self) -> Self {
+        if other == Self::default() {
+            self
+        } else {
+            other
+        }
     }
 }
 

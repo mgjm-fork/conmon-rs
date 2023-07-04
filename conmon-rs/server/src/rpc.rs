@@ -122,13 +122,15 @@ impl conmon::Server for Server {
         let child_reaper = self.reaper().clone();
         let global_args = capnp_vec_str!(req.get_global_args());
         let command_args = capnp_vec_str!(req.get_command_args());
+        let cgroup_manager = pry!(req.get_cgroup_manager()).into();
         let args = pry_err!(self.generate_create_args(
             &id,
             bundle_path,
             &container_io,
             &pidfile,
             global_args,
-            command_args
+            command_args,
+            cgroup_manager,
         ));
         let stdin = req.get_stdin();
         let runtime = self.config().runtime().clone();

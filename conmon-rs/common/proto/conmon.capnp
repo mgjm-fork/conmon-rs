@@ -38,6 +38,7 @@ interface Conmon {
         commandArgs @9 :List(Text);
         metadata @10 :Data;
         envVars @11 :List(Text);
+        cgroupManager @12 :CgroupManager;
     }
 
     struct LogDriver {
@@ -54,6 +55,11 @@ interface Conmon {
             # The CRI logger, requires `path` to be set.
             containerRuntimeInterface @0;
         }
+    }
+
+    enum CgroupManager {
+        systemd @0;
+        cgroupfs @1;
     }
 
     struct CreateContainerResponse {

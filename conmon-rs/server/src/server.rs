@@ -291,6 +291,7 @@ impl Server {
         pidfile: &Path,
         global_args: Vec<String>,
         command_args: Vec<String>,
+        cgroup_manager: CgroupManager,
     ) -> Result<Vec<String>> {
         let mut args = vec![];
 
@@ -298,7 +299,8 @@ impl Server {
             args.push(format!("--root={}", rr.display()));
         }
 
-        if self.config().cgroup_manager() == CgroupManager::Systemd {
+        let cgroup_manager = self.config().cgroup_manager().overwrite(cgroup_manager);
+        if cgroup_manager == CgroupManager::Systemd {
             args.push(Self::SYSTEMD_CGROUP_ARG.into());
         }
 
