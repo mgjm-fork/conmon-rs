@@ -5,6 +5,7 @@ use crate::{
     oom_watcher::OOMWatcher,
 };
 use anyhow::{bail, format_err, Context, Result};
+use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
 use getset::{CopyGetters, Getters, Setters};
 use libc::pid_t;
 use multimap::MultiMap;
@@ -19,6 +20,7 @@ use nix::{
 use std::{
     ffi::OsStr,
     fmt::Write,
+    os::fd::{AsRawFd, OwnedFd, RawFd},
     path::{Path, PathBuf},
     process::Stdio,
     str,
@@ -64,6 +66,7 @@ impl ChildReaper {
         container_io: &mut ContainerIO,
         pidfile: &Path,
         env_vars: Vec<String>,
+        fds: Vec<OwnedFd>,
     ) -> Result<(u32, CancellationToken)>
     where
         P: AsRef<OsStr>,
@@ -81,6 +84,15 @@ impl ChildReaper {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .envs(env_vars.iter().filter_map(|s| s.split_once('=')))
+            .fd_mappings(
+                fds.iter()
+                    .enumerate()
+                    .map(|(i, fd)| FdMapping {
+                        parent_fd: fd.as_raw_fd(),
+                        child_fd: (i + 3) as RawFd,
+                    })
+                    .collect(),
+            )?
             .spawn()
             .context("spawn child process: {}")?;
 

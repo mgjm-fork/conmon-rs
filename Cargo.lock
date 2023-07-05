@@ -287,6 +287,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
+name = "command-fds"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35cc819120a403d0eb3d0c404088c5a9f9b06066147ec69a21919fbc0833ef68"
+dependencies = [
+ "nix 0.22.3",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "concolor-override"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -320,6 +331,7 @@ dependencies = [
  "capnp",
  "capnp-rpc",
  "clap",
+ "command-fds",
  "conmon-common",
  "dashmap",
  "futures",
@@ -330,7 +342,7 @@ dependencies = [
  "memchr",
  "mockall",
  "multimap",
- "nix",
+ "nix 0.26.2",
  "notify",
  "once_cell",
  "opentelemetry",
@@ -349,6 +361,7 @@ dependencies = [
  "tokio",
  "tokio-eventfd",
  "tokio-fd",
+ "tokio-seqpacket",
  "tokio-util",
  "tracing",
  "tracing-opentelemetry",
@@ -511,6 +524,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e51093e27b0797c359783294ca4f0a911c270184cb10f85783b118614a1501be"
 dependencies = [
  "instant",
+]
+
+[[package]]
+name = "filedesc"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d784862d0aff7e84b808ecd8291d27fb5df5c5edb279f275944484ac52dd45e1"
+dependencies = [
+ "libc",
 ]
 
 [[package]]
@@ -1026,7 +1048,7 @@ dependencies = [
  "hmac",
  "libc",
  "log",
- "nix",
+ "nix 0.26.2",
  "nom",
  "once_cell",
  "serde",
@@ -1083,6 +1105,15 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
+
+[[package]]
+name = "memoffset"
+version = "0.6.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5aa361d4faea93603064a027415f07bd8e1d5c88c9fbf68bf56a285428fd79ce"
+dependencies = [
+ "autocfg",
+]
 
 [[package]]
 name = "memoffset"
@@ -1155,6 +1186,19 @@ dependencies = [
 
 [[package]]
 name = "nix"
+version = "0.22.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e4916f159ed8e5de0082076562152a76b7a1f64a01fd9d1e0fea002c37624faf"
+dependencies = [
+ "bitflags",
+ "cc",
+ "cfg-if",
+ "libc",
+ "memoffset 0.6.5",
+]
+
+[[package]]
+name = "nix"
 version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bfdda3d196821d6af13126e40375cdf7da646a96114af134d5f417a9a1dc8e1a"
@@ -1162,7 +1206,7 @@ dependencies = [
  "bitflags",
  "cfg-if",
  "libc",
- "memoffset",
+ "memoffset 0.7.1",
  "pin-utils",
  "static_assertions",
 ]
@@ -1415,7 +1459,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "059a34f111a9dee2ce1ac2826a68b24601c4298cfeb1a587c3cb493d5ab46f52"
 dependencies = [
  "libc",
- "nix",
+ "nix 0.26.2",
 ]
 
 [[package]]
@@ -1967,6 +2011,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.13",
+]
+
+[[package]]
+name = "tokio-seqpacket"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc46f531b7588ab145a216239aa4a6d682b92f987cd99fe07bea6a22dc1468d1"
+dependencies = [
+ "filedesc",
+ "libc",
+ "tokio",
 ]
 
 [[package]]

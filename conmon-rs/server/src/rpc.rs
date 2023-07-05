@@ -7,7 +7,7 @@ use crate::{
     telemetry::Telemetry,
     version::Version,
 };
-use anyhow::format_err;
+use anyhow::{format_err, Context};
 use capnp::{capability::Promise, Error};
 use capnp_rpc::pry;
 use conmon_common::conmon_capnp::conmon;
@@ -138,12 +138,26 @@ impl conmon::Server for Server {
         let oom_exit_paths = capnp_vec_path!(req.get_oom_exit_paths());
         let env_vars = capnp_vec_str!(req.get_env_vars());
 
+        let fd_socket = self.fd_socket();
+        let fds = pry_err!(pry!(req.get_additional_fds())
+            .iter()
+            .map(|slot| fd_socket.take(slot))
+            .collect::<Result<_, _>>());
+
         Promise::from_future(
             async move {
                 capnp_err!(container_log.write().await.init().await)?;
 
                 let (grandchild_pid, token) = capnp_err!(match child_reaper
-                    .create_child(runtime, args, stdin, &mut container_io, &pidfile, env_vars)
+                    .create_child(
+                        runtime,
+                        args,
+                        stdin,
+                        &mut container_io,
+                        &pidfile,
+                        env_vars,
+                        fds,
+                    )
                     .await
                 {
                     Err(e) => {
@@ -219,7 +233,15 @@ impl conmon::Server for Server {
         Promise::from_future(
             async move {
                 match child_reaper
-                    .create_child(&runtime, &args, false, &mut container_io, &pidfile, vec![])
+                    .create_child(
+                        &runtime,
+                        &args,
+                        false,
+                        &mut container_io,
+                        &pidfile,
+                        vec![],
+                        vec![],
+                    )
                     .await
                 {
                     Ok((grandchild_pid, token)) => {
@@ -397,5 +419,37 @@ impl conmon::Server for Server {
         }
 
         Promise::ok(())
+    }
+
+    fn start_fd_socket(
+        &mut self,
+        params: conmon::StartFdSocketParams,
+        mut results: conmon::StartFdSocketResults,
+    ) -> Promise<(), capnp::Error> {
+        let req = pry!(pry!(params.get()).get_request());
+
+        let span = debug_span!(
+            "start_fd_socket",
+            uuid = Uuid::new_v4().to_string().as_str()
+        );
+        let _enter = span.enter();
+        pry_err!(Telemetry::set_parent_context(pry!(req.get_metadata())));
+
+        debug!("Got a reopen container log request");
+
+        let path = self.config().fd_socket();
+        let fd_socket = self.fd_socket().clone();
+
+        Promise::from_future(
+            async move {
+                let path = capnp_err!(fd_socket.start(path).await)?;
+
+                let mut resp = results.get().init_response();
+                resp.set_path(capnp_err!(path.to_str().context("fd_socket path to str"))?);
+
+                Ok(())
+            }
+            .instrument(debug_span!("promise")),
+        )
     }
 }

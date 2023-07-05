@@ -11,6 +11,7 @@ mod config;
 mod container_io;
 mod container_log;
 mod cri_logger;
+mod fd_socket;
 mod init;
 mod journal;
 mod listener;
